@@ -1,3 +1,3 @@
-module github.com/mehanizm/airtable
+module github.com/flamingcow66/airtable
 
-go 1.20
+go 1.22
