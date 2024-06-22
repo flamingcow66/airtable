@@ -125,17 +125,10 @@ func listAll[T any](ctx context.Context, c *Client, db, table string, params url
 	for {
 		resp := map[string]any{}
 
-		err := c.get(ctx, db, table, "", params, resp)
+		err := c.get(ctx, db, table, "", params, &resp)
 		if err != nil {
 			return nil, err
 		}
-
-		off, found := resp["offset"]
-		if !found {
-			return ret, nil
-		}
-
-		params.Set("offset", off.(string))
 
 		subresp, err := json.Marshal(resp[key])
 		if err != nil {
@@ -144,11 +137,19 @@ func listAll[T any](ctx context.Context, c *Client, db, table string, params url
 
 		obj := []*T{}
 
-		err = json.Unmarshal(subresp, obj)
+		err = json.Unmarshal(subresp, &obj)
 		if err != nil {
 			return nil, err
 		}
 
 		ret = append(ret, obj...)
+
+		off, found := resp["offset"]
+		if !found {
+			return ret, nil
+		}
+
+		params.Set("offset", off.(string))
+
 	}
 }
