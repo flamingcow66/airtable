@@ -101,7 +101,6 @@ func (grc *GetRecordsConfig) InStringFormat(timeZone, userLocale string) *GetRec
 	return grc
 }
 
-// Do send the prepared get records request.
-func (grc *GetRecordsConfig) Do() (*Records, error) {
+func (grc *GetRecordsConfig) Do() ([]*Record, error) {
 	return grc.table.GetRecordsWithParams(grc.params)
 }

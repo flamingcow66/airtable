@@ -1,8 +1,3 @@
-// Copyright © 2020 Mike Berezin
-//
-// Use of this source code is governed by an MIT license.
-// Details in the LICENSE file.
-
 package airtable
 
 import (
@@ -20,22 +15,18 @@ const (
 	defaultRateLimit = 4
 )
 
-// Client client for airtable api.
 type Client struct {
 	Client      *http.Client
 	BaseURL     string
-	APIKey      string
+	apiKey      string
 	rateLimiter <-chan time.Time
 }
 
-// New airtable client constructor
-// your API KEY you can get on your account page
-// https://airtable.com/account
 func New(apiKey string) *Client {
 	c := &Client{
 		Client:  http.DefaultClient,
-		APIKey:  apiKey,
 		BaseURL: defaultBaseURL,
+		apiKey:  apiKey,
 	}
 
 	c.SetRateLimit(defaultRateLimit)
@@ -43,9 +34,6 @@ func New(apiKey string) *Client {
 	return c
 }
 
-// SetRateLimit rate limit setter for custom usage
-// Airtable limit is 5 requests per second (we use 4)
-// https://airtable.com/{yourDatabaseID}/api/docs#curl/ratelimits
 func (at *Client) SetRateLimit(rateLimit int) {
 	at.rateLimiter = time.Tick(time.Second / time.Duration(rateLimit))
 }
@@ -108,7 +96,7 @@ func (at *Client) do(ctx context.Context, method, db, table, recordID string, pa
 	req.URL.RawQuery = params.Encode()
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", at.APIKey))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", at.apiKey))
 
 	resp, err := at.Client.Do(req)
 	if err != nil {
@@ -129,4 +117,38 @@ func (at *Client) do(ctx context.Context, method, db, table, recordID string, pa
 	}
 
 	return nil
+}
+
+func listAll[T any](ctx context.Context, c *Client, db, table string, params url.Values, key string) ([]*T, error) {
+	ret := []*T{}
+
+	for {
+		resp := map[string]any{}
+
+		err := c.get(ctx, db, table, "", params, resp)
+		if err != nil {
+			return nil, err
+		}
+
+		off, found := resp["offset"]
+		if !found {
+			return ret, nil
+		}
+
+		params.Set("offset", off.(string))
+
+		subresp, err := json.Marshal(resp[key])
+		if err != nil {
+			return nil, err
+		}
+
+		obj := []*T{}
+
+		err = json.Unmarshal(subresp, obj)
+		if err != nil {
+			return nil, err
+		}
+
+		ret = append(ret, obj...)
+	}
 }

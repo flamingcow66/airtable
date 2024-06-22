@@ -38,23 +38,17 @@ func (c *Client) GetTable(dbName, tableName string) *Table {
 	}
 }
 
-// GetRecordsWithParams get records with url values params
-// https://airtable.com/{yourDatabaseID}/api/docs#curl/table:{yourTableName}:list
-func (t *Table) GetRecordsWithParams(params url.Values) (*Records, error) {
+func (t *Table) GetRecordsWithParams(params url.Values) ([]*Record, error) {
 	return t.GetRecordsWithParamsContext(context.Background(), params)
 }
 
-// GetRecordsWithParamsContext get records with url values params
-// with custom context
-func (t *Table) GetRecordsWithParamsContext(ctx context.Context, params url.Values) (*Records, error) {
-	records := new(Records)
-
-	err := t.client.get(ctx, t.dbName, t.tableName, "", params, records)
+func (t *Table) GetRecordsWithParamsContext(ctx context.Context, params url.Values) ([]*Record, error) {
+	records, err := listAll[Record](ctx, t.client, t.dbName, t.tableName, params, "records")
 	if err != nil {
 		return nil, err
 	}
 
-	for _, record := range records.Records {
+	for _, record := range records {
 		record.client = t.client
 		record.table = t
 	}
