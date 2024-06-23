@@ -6,9 +6,9 @@ import (
 )
 
 type Base struct {
-	ID              string `json:"id"`
-	Name            string `json:"name"`
-	PermissionLevel string `json:"permissionLevel"`
+	ID              *string `json:"id,omitempty"`
+	Name            *string `json:"name,omitempty"`
+	PermissionLevel *string `json:"permissionLevel,omitempty"`
 
 	c *Client
 }
@@ -27,7 +27,7 @@ func (c *Client) GetBaseByName(ctx context.Context, name string) (*Base, error) 
 	}
 
 	for _, base := range bases {
-		if base.Name == name {
+		if *base.Name == name {
 			return base, nil
 		}
 	}
@@ -36,5 +36,5 @@ func (c *Client) GetBaseByName(ctx context.Context, name string) (*Base, error) 
 }
 
 func (b Base) String() string {
-	return b.Name
+	return *b.Name
 }

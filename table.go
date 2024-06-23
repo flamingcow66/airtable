@@ -6,10 +6,10 @@ import (
 )
 
 type Table struct {
-	ID             string   `json:"id"`
-	PrimaryFieldID string   `json:"primaryFieldId"`
-	Name           string   `json:"name"`
-	Description    string   `json:"description"`
+	ID             *string  `json:"id,omitempty"`
+	PrimaryFieldID *string  `json:"primaryFieldId,omitempty"`
+	Name           *string  `json:"name,omitempty"`
+	Description    *string  `json:"description,omitempty"`
 	Fields         []*Field `json:"fields"`
 	Views          []*View  `json:"views"`
 
@@ -18,21 +18,21 @@ type Table struct {
 }
 
 type Field struct {
-	ID          string         `json:"id"`
-	Type        string         `json:"type"`
-	Name        string         `json:"name"`
-	Description string         `json:"description"`
+	ID          *string        `json:"id"`
+	Type        *string        `json:"type"`
+	Name        *string        `json:"name"`
+	Description *string        `json:"description"`
 	Options     map[string]any `json:"options"`
 }
 
 type View struct {
-	ID   string `json:"id"`
-	Type string `json:"type"`
-	Name string `json:"name"`
+	ID   *string `json:"id"`
+	Type *string `json:"type"`
+	Name *string `json:"name"`
 }
 
 func (b *Base) ListTables(ctx context.Context) ([]*Table, error) {
-	return listAll[Table](ctx, b.c, fmt.Sprintf("meta/bases/%s/tables", b.ID), nil, "tables", func(t *Table) error {
+	return listAll[Table](ctx, b.c, fmt.Sprintf("meta/bases/%s/tables", *b.ID), nil, "tables", func(t *Table) error {
 		t.c = b.c
 		t.b = b
 		return nil
@@ -46,7 +46,7 @@ func (b *Base) GetTableByName(ctx context.Context, name string) (*Table, error) 
 	}
 
 	for _, table := range tables {
-		if table.Name == name {
+		if *table.Name == name {
 			return table, nil
 		}
 	}

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 )
@@ -63,7 +64,8 @@ func do[T any](ctx context.Context, c *Client, method, path string, params url.V
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return nil, fmt.Errorf("http error: %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
+		errBody, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("http error: %d %s (%s)", resp.StatusCode, http.StatusText(resp.StatusCode), string(errBody))
 	}
 
 	dec := json.NewDecoder(resp.Body)

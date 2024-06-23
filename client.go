@@ -47,3 +47,7 @@ func (c *Client) SetRateLimit(rateLimit int) {
 func (c *Client) waitForRateLimit() {
 	<-c.rateLimiter
 }
+
+func P(s string) *string {
+	return &s
+}
